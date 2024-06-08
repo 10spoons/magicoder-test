@@ -62,12 +62,6 @@
     ```
 - 실행 결과는 현재 폴더 아래에 `data-python-baa05-1_11-20240602_025904.jsonl` 같은 형태의 JSONL 파일로 만들어 진다. 이 파일을 열어보면 instruct 모델 훈련용 데이터셋을 어떤 형태로 만드는지 알 수 있다. (OpenAI ChatGPT 모델이 얼마나 데이터셋을 그럴듯하게 만들었는지 확인할 것.)
 
-        # model 로 사용할 모델을 변경 
-    python magicoder/generate_data.py   --seed_code_start_index 1   --max_new_data 100   --data_dir python   --tag python --model mistralai/Mistral-7B-Instruct-v0.3
-    #
-    # 실행 결과는 data-python-baa05-1_11-20240602_025904.jsonl 같은 형태의 JSONL 파일로 만들어 짐
-    ```
-
 ## 오픈소스 LLM 모델로 학습용 데이터셋 생성하기
 - vLLM은 오픈소스 LLM을 OpenAI 와 같은 API로 접속할 수 있게 만들어 줍니다. 이를 사용하여 무료 모델을 이용하여 데이터셋을 생성해봅니다.
 - vLLM을 설치하고 `Mistral-7B-Instruct-v0.3` 모델을 OpenAI API로 서비스하도록 합니다.
