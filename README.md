@@ -138,3 +138,12 @@
     ```
 - 실행 중에 디스크 공간 부족하다는 메시지가 나오면 `.cache` 쪽에서 큰 것들을 좀 지워야 한다. 아래 예시 참조.
 ![alt text](image-5.png)
+
+## 학습 시킨 모델을 실행
+- 아까 사용했던 데모 프로그램을 모델만 바꿔서 실행해볼 수 있다.
+    ```bash
+    cd ../demo
+    CUDA_VISIBLE_DEVICES=0 python magicoder_demo.py --base_model ../src/magic_coder_out --device "cuda:0" --port 8080
+    ```
+- 실행해보면 결과가 무척 불만스러운데 그 이유는 학습용 데이터셋이 작은 것, epoch 수를 작게해서 충분히 학습하지 않은 것도 있지만 학습에 사용한 프롬프트와 데모 프로그램에 사용한 프롬프트 다른 것도 영향을 주는 것 같다. 데모 프로그램(`magicoder_demo.py`)에 들어가서 프롬프트 부분을 아래 그림과 같이 수정하여 결과가 어떻게 다른지 살펴보자.
+![alt text](image-6.png)
