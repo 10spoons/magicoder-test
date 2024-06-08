@@ -90,4 +90,57 @@
 
     python magicoder/generate_data.py --seed_code_start_index 1 --max_new_data 1000   --data_dir python --tag python --model mistralai/Mistral-7B-Instruct-v0.3
     ```
+- 생성이 끝났으면 vLLM을 계속 쓸 것이 아니므로 `CTRL+C`를 눌러 실행을 중단시킨다.
 
+## 학습용 데이터셋 형태로 포맷 변환
+- 모델에서 원하는 형태로 데이터셋을 변환한다. (그냥 키 이름만 바꾸는 것이며 결과는 `output.jsonl` 에 저장)
+    ```bash
+    python magicoder/preprocess_data.py --dataset_path json --data_files <생성된 JSONL 파일 이름> --output_file output.jsonl --key src-instruct
+    ```
+
+## 학습 실행
+- 그냥 학습을 실행하면 GPU 메모리 부족으로 진행이 되지 않아 deepspeed를 사용하여 진행하였다. (다른 방법이 더 있는지는 공부가 필요함.) 우선 deepspeed 를 설치한다.
+    ```bash
+    pip3 install deepspeed
+    ```
+- 학습 환경을 설정한다.
+    ```bash
+    accelerate config
+    ```
+- 만약 위의 명령에서 아래와 같이 에러가 난다면 설치된 transformer 버전의 문제라고 `pip3 uninstall transformer-engine`로 삭제를 해주고 다시 `accelerate config`를 돌리니까 되더라.
+    ```bash
+    ImportError: /usr/local/lib/python3.10/dist-packages/transformer_engine_extensions.cpython-310-x86_64-linux-gnu.so: undefined symbol: _ZN2at4_ops5zeros4callEN3c108ArrayRefINS2_6SymIntEEENS2_8optionalINS2_10ScalarTypeEEENS6_INS2_6LayoutEEENS6_INS2_6DeviceEEENS6_IbEE
+    ```
+- 어쨌든, 실행이 되면 질문이 쭉 나오는데 아래의 질문을 제외하고 나머지는 디폴트로 선택하면 된다.
+    - 첫번째 질문: `This machine`
+    - 두번째 질문: `multi-GPU`
+    - DeepSpeed 쓸건지 질문: `yes`
+    - offload optimizer states: `cpu`
+    - offload parameters: `cpu`
+    - gradient accumulation steps: `128`
+    - How many GPU(s): `2`
+    - FP16 or BF16 (mixed precision): `bf16`
+- 학습 실행
+    ```bash
+    accelerate launch -m magicoder.train \
+    --model_key deepseek-ai/deepseek-coder-6.7b-base \
+    --datafile_paths output.jsonl \
+    --output_dir magic_coder_out \
+    --max_training_seq_length 1216 \
+    --bf16 True \
+    --per_device_train_batch_size 24 \
+    --gradient_checkpointing True \
+    --gradient_accumulation_steps 128 \
+    --num_train_epochs 2 \
+    --group_by_length False \
+    --ddp_find_unused_parameters False \
+    --logging_steps 1 \
+    --log_level info \
+    --optim adafactor \
+    --max_grad_norm -1 \
+    --warmup_steps 15 \
+    --learning_rate 5e-5 \
+    --lr_scheduler_type linear
+    ```
+- 실행 중에 디스크 공간 부족하다는 메시지가 나오면 `.cache` 쪽에서 큰 것들을 좀 지워야 한다. 아래 예시 참조.
+![alt text](image-5.png)
